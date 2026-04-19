@@ -1,3 +1,20 @@
+# chapter10
+
+Next.js + TypeScript + Prisma + SQLite を使用したブログアプリです。
+
+## 機能
+- 記事一覧表示
+- 記事詳細表示
+- 管理画面での記事CRUD
+- 管理画面でのカテゴリーCRUD
+
+## セットアップ
+npm install
+npx prisma db push
+npm run dev
+
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
