@@ -1,22 +1,16 @@
 "use client"
 
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { CreateButton, DeleteButton, BackButton } from "@/app/_components/Button";
+import CategoryForm from "@/app/_components/CategoryForm";
+import { CategoryShowResponse } from "@/app/api/admin/categories/[id]/route";
+import type { CategoryFormValues } from "@/app/_components/CategoryForm";
 
 type Props = {
   params: {
     id: string;
   };
-};
-
-type Category = {
-  id: number;
-  name: string;
-};
-
-type CategoryShowResponse = {
-  category: Category;
 };
 
 export default function AdminCategoryEditPage({ params }: Props) {
@@ -29,11 +23,7 @@ export default function AdminCategoryEditPage({ params }: Props) {
   useEffect(() => {
     const fetcher = async () => {
       try {
-        const res = await fetch(`/api/admin/categories/${params.id}`, {
-          headers: {
-            "x-admin-token": process.env.NEXT_PUBLIC_ADMIN_TOKEN ?? "",
-          },
-        });
+        const res = await fetch(`/api/admin/categories/${params.id}`);
 
         if (!res.ok) {
           throw new Error("カテゴリーの情報の取得に失敗しました");
@@ -51,10 +41,8 @@ export default function AdminCategoryEditPage({ params }: Props) {
     fetcher();
   }, [params.id]);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!name.trim()) {
+  const handleSubmit = async (values: CategoryFormValues) => {
+    if (!values.name.trim()) {
       setErrorMessage("カテゴリー名を入力してください");
       return;
     }
@@ -67,11 +55,8 @@ export default function AdminCategoryEditPage({ params }: Props) {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "x-admin-token": process.env.NEXT_PUBLIC_ADMIN_TOKEN ?? "",
         },
-        body: JSON.stringify({
-          name: name.trim(),
-        }),
+        body: JSON.stringify(values),
       });
 
       if (!res.ok) {
@@ -119,55 +104,27 @@ export default function AdminCategoryEditPage({ params }: Props) {
   if (loading) return <p>読み込み中...</p>;
 
   return (
-      <div className="max-w-xl">
-        <div className="mb=6">
-          <h1 className="text-2xl font-bold mb-3">カテゴリー編集</h1>
-        </div>
-  
-      <form onSubmit={handleSubmit} className="space-y-4 rounded border p-6 mb-5">
-        <div>
-          <label htmlFor="name" className="mb-2 block font-bold">
-            カテゴリー名
-          </label>
-              <input
-                id="name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full rounded border px-3 py-2"
-              />
-        </div>
+    <div>
+      <div className="mb=6">
+        <h1 className="text-2xl font-bold mb-3">カテゴリー編集</h1>
+      </div>
 
-        {errorMessage && (
-          <p className="text-sm text-red-500">{errorMessage}</p>
-        )}
+      <CategoryForm formId="category-create-form"
+        initialValues={{
+          name,
+        }}
+        onSubmit={handleSubmit}
+      />
 
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-3  rounded bg-blue-500 text-white disabled:opacity-50"
-          >
-            更新する
-          </button>
+      {errorMessage && (
+        <p className="text-sm text-red-500">{errorMessage}</p>
+      )}
 
-          <button
-            type="submit"
-            onClick={handleDelete}
-            disabled={isSubmitting}
-            className="px-2 py-1 rounded bg-red-500 text-white disabled:opacity-50"
-          >
-            削除する
-          </button>
-
-          <Link
-            href="/admin/categories"
-            className="px-4 py-2 rounded border"
-          >
-            戻る
-          </Link>
-        </div>
-      </form>
+      <div className="flex gap-3">
+        <CreateButton form="category-create-form" />
+        <DeleteButton onClick={handleDelete} />
+        <BackButton href="/admin/categories"/>
+      </div>
     </div>
   );
 }

@@ -1,17 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react";
+import { CategoriesIndexResponse } from "@/app/api/admin/categories/route";
 import Link from "next/link"
 
-type Category = {
-  id: number;
-  name: string;
-};
-
-type CategoriesIndexResponse = {
-  categories: Category[];
-};
-
+type Category = CategoriesIndexResponse["categories"][number];
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
