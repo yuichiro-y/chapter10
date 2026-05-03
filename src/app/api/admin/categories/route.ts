@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/app/_libs/prisma"
 
-export type CategoryIndexResponse = {
+export type CategoriesIndexResponse = {
   categories: {
     id: number
     name: string
@@ -10,12 +10,6 @@ export type CategoryIndexResponse = {
 }
 
 export const GET = async ( req: Request ) => {
-  const token = req.headers.get("x-admin-token")
-
-  if (token !== process.env.ADMIN_TOKEN) {
-    return new NextResponse("Unauthorized", { status:401 })
-  }
-
   try { 
     const categories = await prisma.category.findMany({
       select: {
@@ -28,7 +22,7 @@ export const GET = async ( req: Request ) => {
       },
     })
 
-    return NextResponse.json<CategoryIndexResponse>({ categories }, { status:200 })
+    return NextResponse.json<CategoriesIndexResponse>({ categories }, { status:200 })
 
   } catch (error) {
     if (error instanceof Error) {
@@ -47,12 +41,6 @@ type CreateCategoryResponse = {
 }
 
 export const POST = async ( req: Request ) => {
-  const token = req.headers.get("x-admin-token")
-
-  if (token !== process.env.ADMIN_TOKEN) {
-    return new NextResponse("Unauthorized", { status:401 })
-  }
-
   try {
     const body: CreateCategoryBody = await req.json()
     const { name } = body
