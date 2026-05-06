@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-// import Image from "next/image";
+import { formatDate } from "./_utils/date";
 
 export type Posts = {
   id: string
@@ -71,7 +71,7 @@ export default function Page() {
             <Link href={`/posts/${post.id}`}>
 
               <div className="flex justify-between">
-                <div className="text-gray-500 text-sm">{new Date(post.createdAt).toLocaleDateString('ja-JP')}</div>
+                <div className="text-gray-500 text-sm">{formatDate(post.createdAt)}</div>
                 {post.postCategories && (<ul className="flex font-semibold text-sm">
                   {post.postCategories.map((c)=>
                     <li key={c.category.id} 

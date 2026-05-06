@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CreateButton, DeleteButton, BackButton } from "@/app/_components/Button";
-import CategoryForm from "@/app/_components/CategoryForm";
+import { CreateButton, DeleteButton, BackButton } from "@/app/admin/_components/Button";
+import CategoryForm from "@/app/admin/_components/CategoryForm";
 import { CategoryShowResponse } from "@/app/api/admin/categories/[id]/route";
-import type { CategoryFormValues } from "@/app/_components/CategoryForm";
+import type { CategoryFormValues } from "@/app/admin/_components/CategoryForm";
 
 type Props = {
   params: {
@@ -17,7 +17,7 @@ export default function AdminCategoryEditPage({ params }: Props) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {

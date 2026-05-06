@@ -21,12 +21,6 @@ export type PostShowResponse = {
 type Params = { params: { id: string }}
 
 export const GET = async ( _req: Request, { params }: Params ) => {
-  const token = _req.headers.get("x-admin-token")
-
-  if (token !== process.env.ADMIN_TOKEN) {
-    return new NextResponse("Unauthorized", { status:401 })
-  }
-
   try {
     const id = Number(params.id)
     
@@ -73,13 +67,6 @@ type PutPostRequest = {
 }
 
 export const PUT = async ( req: Request, { params }: Params) => {
-  
-  const token = req.headers.get("x-admin-token")
-
-  if (token !== process.env.ADMIN_TOKEN) {
-    return new NextResponse("Unauthrized", { status: 401 })
-  }
-
   try {
     const body: PutPostRequest = await req.json()
     const { title, content, thumbnailUrl, categoryIds } = body
@@ -127,12 +114,6 @@ export const PUT = async ( req: Request, { params }: Params) => {
 
 
 export const DELETE = async( _req: Request, { params }: Params) => {
-  const token = _req.headers.get("x-admin-token")
-
-  if (token !== process.env.ADMIN_TOKEN) {
-    return new NextResponse("Unauthrized", { status: 401 })
-  }
-
   try {
     const post = await prisma.post.findUnique({
       where: {

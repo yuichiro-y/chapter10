@@ -9,7 +9,7 @@ export type CategoriesIndexResponse = {
   }[]
 }
 
-export const GET = async ( req: Request ) => {
+export const GET = async () => {
   try { 
     const categories = await prisma.category.findMany({
       select: {

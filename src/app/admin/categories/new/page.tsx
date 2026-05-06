@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import CategoryForm from "@/app/_components/CategoryForm";
-import type { CategoryFormValues } from "@/app/_components/CategoryForm";
-import { CreateButton, BackButton } from "@/app/_components/Button";
+import CategoryForm from "@/app/admin/_components/CategoryForm";
+import type { CategoryFormValues } from "@/app/admin/_components/CategoryForm";
+import { CreateButton, BackButton } from "@/app/admin/_components/Button";
 
 export default function AdminCategoriesPage() {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (values: CategoryFormValues) => {

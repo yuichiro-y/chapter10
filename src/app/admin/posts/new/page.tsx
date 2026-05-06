@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import PostForm from "@/app/_components/PostForm";
-import type { PostFormValues } from "@/app/_components/PostForm";
-import { BackButton, CreateButton } from "@/app/_components/Button";
+import PostForm from "@/app/admin/_components/PostForm";
+import type { PostFormValues } from "@/app/admin/_components/PostForm";
+import { BackButton, CreateButton } from "@/app/admin/_components/Button";
 import type { CategoriesIndexResponse } from "@/app/api/admin/categories/route";
 
 type Category = CategoriesIndexResponse["categories"][number];

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { CreateCategoryBody } from "../api/admin/categories/route";
+import type { CreateCategoryBody } from "../../api/admin/categories/route";
 
 export type CategoryFormValues = CreateCategoryBody;
 
@@ -13,7 +13,7 @@ export type CategoryFormProps = {
 
 export default function CategoryForm({ formId, initialValues, onSubmit }: CategoryFormProps) {
   const [name, setName] = useState(initialValues.name);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

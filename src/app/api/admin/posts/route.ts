@@ -9,13 +9,7 @@ export type PostsIndexResponse = {
   }[]
 }
 
-export const GET = async (req: Request) => {
-  const token = req.headers.get("x-admin-token")
-
-  if (token !== process.env.ADMIN_TOKEN) {
-    return new NextResponse("Unauthorized", { status:401 })
-  }
-
+export const GET = async () => {
   try {
     const posts = await prisma.post.findMany({
       select: {
@@ -55,21 +49,10 @@ export type CreatePostResponse = {
 }
 
 export const POST = async (req: Request) => {
-
-  // ① token確認
-  const token = req.headers.get("x-admin-token")
-
-  if (token !== process.env.ADMIN_TOKEN) {
-    return new NextResponse("Unauthorized", { status:401 })
-  }
-
   try {
-    // ② body取得
     const body: CreatePostBody = await req.json()
-
     const { title, content, thumbnailUrl, categoryIds } = body
 
-    // ③ バリデーション
     if (!title || !content) {
       return NextResponse.json({ message: "title and content are required "},{ status: 400 })
     }
@@ -78,7 +61,6 @@ export const POST = async (req: Request) => {
       return NextResponse.json({ message: "categoryIds must be an array" },{ status: 400 })
     }
 
-    // ④ prisma.post.create()
     const data = await prisma.post.create({
       data: {
         title,
@@ -94,7 +76,6 @@ export const POST = async (req: Request) => {
       }
     })
 
-    // ⑤ response返す
     return NextResponse.json<CreatePostResponse>({ id: data.id },{ status: 201 })
 
   } catch ( error ){
