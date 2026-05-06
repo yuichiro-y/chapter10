@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { formatDate } from "@/app/_utils/date";
 
 type Post = {
   id: number;
@@ -20,11 +21,7 @@ export default function AdminPostsPage() {
   useEffect(() => {
     const fetcher = async () => {
       try {
-        const res = await fetch("/api/admin/posts", {
-          headers: {
-            "x-admin-token": process.env.NEXT_PUBLIC_ADMIN_TOKEN ?? "",
-          },
-        });
+        const res = await fetch("/api/admin/posts");
 
         if (!res.ok) {
           throw new Error("記事一覧の取得に失敗しました");
@@ -66,7 +63,7 @@ export default function AdminPostsPage() {
             >
               <div className="font-bold">{post.title}</div>
               <div className="text-sm text-gray-500">
-                {post.createdAt}
+                {formatDate(post.createdAt)}
               </div>
             </Link>
           </li>

@@ -13,12 +13,6 @@ export type CategoryShowResponse = {
 }
 
 export const GET = async ( _req: Request, { params }: Params ) => {
-  const token = _req.headers.get("x-admin-token")
-
-  if (token !== process.env.ADMIN_TOKEN) {
-    return new NextResponse("Unauthorized", { status:401 })
-  }
-
   try {
     const id = Number(params.id)
     
@@ -59,12 +53,6 @@ export type PutCategoryResponse = {
 }
 
 export const PUT = async (req: Request, { params }: Params) => {
-  const token = req.headers.get("x-admin-token")
-
-  if (token !== process.env.ADMIN_TOKEN) {
-    return new NextResponse("Unauthorized", { status: 401 })
-  }
-
   try {
     const id = Number(params.id)
     
@@ -94,12 +82,6 @@ export const PUT = async (req: Request, { params }: Params) => {
 }
 
 export const DELETE = async ( req: Request, { params }: Params ) => {
-  const token = req.headers.get("x-admin-token")
-
-  if (token !== process.env.ADMIN_TOKEN) {
-    return new NextResponse("Unauthrized", { status: 401 })
-  }
-
   try {
     const id = Number(params.id)
 

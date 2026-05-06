@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import PostForm from "@/app/_components/PostForm";
-import type { PostFormValues } from "@/app/_components/PostForm";
-import { BackButton, DeleteButton, UpdateButton } from "@/app/_components/Button";
+import PostForm from "@/app/admin/_components/PostForm";
+import type { PostFormValues } from "@/app/admin/_components/PostForm";
+import { BackButton, DeleteButton, UpdateButton } from "@/app/admin/_components/Button";
 import type { CategoriesIndexResponse } from "@/app/api/admin/categories/route";
 import type { PostShowResponse } from "@/app/api/posts/[id]/route";
 
@@ -23,12 +23,12 @@ export default function AdminPostsEditPage({params}: Props) {
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
-  const [titleErrorMessage, setTitleErrorMessage] = useState("");
-  const [contentErrorMessage, setContentErrorMessage] = useState("");
-  const [thumbnailUrlErrorMessage, setThumbnailUrlErrorMessage] = useState("");
+  const [, setTitleErrorMessage] = useState("");
+  const [, setContentErrorMessage] = useState("");
+  const [, setThumbnailUrlErrorMessage] = useState("");
 
   // 記事の情報取得
   useEffect(() => {

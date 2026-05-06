@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-// import Image from "next/image";
+import { formatDate } from "@/app/_utils/date";
 
 export type Posts = {
   id: string
@@ -18,7 +18,6 @@ export type Posts = {
     };
   }[];
 }
-
 
 export default function PostDetail() {
 
@@ -80,7 +79,7 @@ export default function PostDetail() {
 
         <div className="px-5">
           <div className="flex justify-between">
-            <div className="text-gray-500 text-sm">{new Date(post.createdAt).toLocaleDateString('ja-JP')}
+            <div className="text-gray-500 text-sm">{formatDate(post.createdAt)}
             </div>
             {post.postCategories && (<ul className="flex font-semibold text-sm">{post.postCategories.map((c)=>
               <Link href={`/posts/${post.id}`} key={c.category.id}>

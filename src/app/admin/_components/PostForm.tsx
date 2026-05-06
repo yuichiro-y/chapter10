@@ -26,7 +26,7 @@ export default function PostForm({ formId, initialValues, categories, onSubmit }
   const [content, setContent] = useState(initialValues.content);
   const [thumbnailUrl, setThumbnailUrl] = useState(initialValues.thumbnailUrl);
   const [categoryIds, setCategoryIds] = useState<number[]>(initialValues.categoryIds);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [, setIsSubmitting] = useState(false);
 
   const handleCategoryChange = (categoryId: number) => {
     setCategoryIds((prev) => 
