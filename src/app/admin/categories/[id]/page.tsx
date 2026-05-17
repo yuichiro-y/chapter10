@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CreateButton, DeleteButton, BackButton } from "@/app/admin/_components/Button";
+import { UpdateButton, DeleteButton, BackButton } from "@/app/admin/_components/Button";
 import CategoryForm from "@/app/admin/_components/CategoryForm";
 import { CategoryShowResponse } from "@/app/api/admin/categories/[id]/route";
 import type { CategoryFormValues } from "@/app/admin/_components/CategoryForm";
@@ -109,7 +109,7 @@ export default function AdminCategoryEditPage({ params }: Props) {
         <h1 className="text-2xl font-bold mb-3">カテゴリー編集</h1>
       </div>
 
-      <CategoryForm formId="category-create-form"
+      <CategoryForm formId="category-edit-form"
         initialValues={{
           name,
         }}
@@ -121,7 +121,7 @@ export default function AdminCategoryEditPage({ params }: Props) {
       )}
 
       <div className="flex gap-3">
-        <CreateButton form="category-create-form" />
+        <UpdateButton form="category-edit-form" />
         <DeleteButton onClick={handleDelete} />
         <BackButton href="/admin/categories"/>
       </div>

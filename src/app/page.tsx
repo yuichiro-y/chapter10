@@ -9,7 +9,7 @@ export type Posts = {
   title: string
   content: string
   createdAt: string
-  thumbnailUrl: string
+  thumbnailImageKey: string
   postCategories: {
     category:{
       id: number; name: string
@@ -70,22 +70,22 @@ export default function Page() {
           <li key={post.id} className="w-auto p-5 mb-10 border border-gray-300">
             <Link href={`/posts/${post.id}`}>
 
-              <div className="flex justify-between">
-                <div className="text-gray-500 text-sm">{formatDate(post.createdAt)}</div>
-                {post.postCategories && (<ul className="flex font-semibold text-sm">
-                  {post.postCategories.map((c)=>
-                    <li key={c.category.id} 
-                      className="border border-blue-500 text-blue-500 rounded-md mr-1.5 px-1.5 py-0.5">{c.category.name}
-                    </li>)}
-                </ul>)}
+              <div className="mb-3 flex justify-between">
+                <h1 className="text-2xl">{post.title}</h1>
+                <div className="text-gray-500 text-sm">{formatDate(post.createdAt)}</div>                
               </div>
 
+              {post.postCategories && (<ul className="mb-3 flex font-semibold text-sm">
+                {post.postCategories.map((c)=>
+                  <li key={c.category.id} 
+                    className="border border-blue-500 text-blue-500 rounded-md mr-1.5 px-1.5 py-0.5">{c.category.name}
+                  </li>)}
+              </ul>)}               
+
               <div className="flex justify-between w-full">
-                <div className="text-left">
-                  <h1 className="text-2xl py-3">{post.title}</h1>
+                <div className="text-left">                 
                   <p className="line-clamp-2" dangerouslySetInnerHTML={{ __html: post.content }} />
                 </div>
-                <img src={post.thumbnailUrl} alt="Thumbnail" className="p-3 w-52 max-w-full" width={200} height={200} />
               </div>
                 
             </Link>

@@ -12,11 +12,13 @@
     "@prisma/adapter-better-sqlite3": "^7.3.0",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
+    "@supabase/supabase-js": "^2.105.3",
     "dotenv": "^17.2.4",
     "next": "14.2.16",
     "pg": "^8.18.0",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",

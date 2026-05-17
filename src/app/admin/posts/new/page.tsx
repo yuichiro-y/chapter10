@@ -37,7 +37,7 @@ export default function AdminPostsPage() {
       return;
     }
 
-    if (!values.thumbnailUrl.trim()) {
+    if (!values.thumbnailImageKey.trim()) {
       setThumbnailUrlErrorMessage("サムネイルURLを入力してください");
       return;
     }
@@ -66,7 +66,7 @@ export default function AdminPostsPage() {
         initialValues={{
           title: "",
           content: "",
-          thumbnailUrl: "",
+          thumbnailImageKey: "",
           categoryIds: [],
         }}
         categories={categories}

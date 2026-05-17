@@ -34,7 +34,7 @@ export default function CategoryForm({ formId, initialValues, onSubmit }: Catego
           value={name}
           placeholder="例：React"
           onChange={(e) => setName(e.target.value)}
-          className="w-full mb-2 rounded border px-3 py-2"
+          className="w-full mb-2 rounded border px-3 py-2 bg-gray-50"
         />
       </div>
     </form>

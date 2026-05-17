@@ -6,7 +6,7 @@ export type PostShowResponse = {
     id: number
     title: string
     content: string
-    thumbnailUrl: string
+    thumbnailImageKey: string
     createdAt: Date
     updatedAt: Date
     postCategories:{
@@ -62,14 +62,14 @@ export const GET = async ( _req: Request, { params }: Params ) => {
 type PutPostRequest = {
   title: string
   content: string
-  thumbnailUrl?: string
+  thumbnailImageKey?: string
   categoryIds: number[]
 }
 
 export const PUT = async ( req: Request, { params }: Params) => {
   try {
     const body: PutPostRequest = await req.json()
-    const { title, content, thumbnailUrl, categoryIds } = body
+    const { title, content, thumbnailImageKey, categoryIds } = body
 
     if (!title || !content) {
       return NextResponse.json(
@@ -84,7 +84,7 @@ export const PUT = async ( req: Request, { params }: Params) => {
       data: {
         title, 
         content, 
-        thumbnailUrl,
+        thumbnailImageKey,
         postCategories: {
           deleteMany: {},
           create: categoryIds.map((categoryIds: number) => ({

@@ -20,7 +20,7 @@ export default function AdminPostsEditPage({params}: Props) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [thumbnailUrl, setThumbnailUrl] = useState("");
+  const [thumbnailImageKey, setThumbnailImageKey] = useState("");
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [, setIsSubmitting] = useState(false);
@@ -28,7 +28,6 @@ export default function AdminPostsEditPage({params}: Props) {
   const [errorMessage, setErrorMessage] = useState("");
   const [, setTitleErrorMessage] = useState("");
   const [, setContentErrorMessage] = useState("");
-  const [, setThumbnailUrlErrorMessage] = useState("");
 
   // 記事の情報取得
   useEffect(() => {
@@ -43,7 +42,7 @@ export default function AdminPostsEditPage({params}: Props) {
         const data = await res.json();
         setTitle(data.post.title);
         setContent(data.post.content);
-        setThumbnailUrl(data.post.thumbnailUrl);
+        setThumbnailImageKey(data.post.thumbnailImageKey);
         //中間テーブル
         setSelectedCategoryIds(
           data.post.postCategories.map(
@@ -87,12 +86,6 @@ export default function AdminPostsEditPage({params}: Props) {
       return;
     }
 
-    if (!values.thumbnailUrl.trim()) {
-      setThumbnailUrlErrorMessage("サムネイルURLを入力してください");
-      return;
-    }
-
-
     try {
       const res = await fetch(`/api/admin/posts/${params.id}`, {
         method: "PUT",
@@ -102,7 +95,7 @@ export default function AdminPostsEditPage({params}: Props) {
         body: JSON.stringify({
           title: values.title,
           content: values.content,
-          thumbnailUrl: values.thumbnailUrl,
+          thumbnailImageKey: values.thumbnailImageKey,
           categoryIds: values.categoryIds,
         }),
       });
@@ -159,7 +152,7 @@ export default function AdminPostsEditPage({params}: Props) {
         initialValues={{
           title,
           content,
-          thumbnailUrl,
+          thumbnailImageKey,
           categoryIds: selectedCategoryIds,
         }}
         categories={categories}

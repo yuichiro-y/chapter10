@@ -3,33 +3,35 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatDate } from "@/app/_utils/date";
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import { PostsIndexResponse } from "@/app/api/admin/posts/route";
 
-type Post = {
-  id: number;
-  title: string;
-  createdAt: string;
-};
-
-type PostsIndexResponse = {
-  posts: Post[];
-};
+type Posts = PostsIndexResponse["posts"][number];
 
 export default function AdminPostsPage() {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<Posts[]>([]);
   const [loading, setLoading] = useState(true);
+  const { token } = useSupabaseSession();
 
   useEffect(() => {
+    if (!token) return
+
     const fetcher = async () => {
       try {
-        const res = await fetch("/api/admin/posts");
+        const res = await fetch("/api/admin/posts",{
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: token,
+          } 
+        })
 
         if (!res.ok) {
           throw new Error("記事一覧の取得に失敗しました");
         }
 
-        const data: PostsIndexResponse = await res.json();
+        const { posts } = await res.json();
         
-        setPosts(data.posts);
+        setPosts([...posts]);
       } catch (e) {
         console.error(e);
       } finally {
@@ -38,7 +40,7 @@ export default function AdminPostsPage() {
     };
 
     fetcher();
-  }, []);
+  }, [token]);
 
   if (loading) return <p>読み込み中...</p>;
 

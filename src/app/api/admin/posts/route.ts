@@ -1,16 +1,24 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/app/_libs/prisma"
+import { supabase } from "@/app/_libs/supabase"
+
 
 export type PostsIndexResponse = {
   posts:{
     id: number
     title: string
-    createdAt: Date
+    createdAt: string
   }[]
 }
 
-export const GET = async () => {
-  try {
+export const GET = async (request: NextRequest) => {
+    const token = request.headers.get('Authorization') ?? ''
+    const { error } = await supabase.auth.getUser(token)
+
+    if (error)
+      return NextResponse.json({ status: error.message }, { status: 400 })
+  
+    try {
     const posts = await prisma.post.findMany({
       select: {
         id: true, 
@@ -26,7 +34,12 @@ export const GET = async () => {
       return NextResponse.json({ message: "Not Found" }, { status: 404 })
     }
 
-    return NextResponse.json<PostsIndexResponse>( { posts }, { status: 200 })
+    const responsePosts = posts.map((post) => ({
+      ...post,
+      createdAt: post.createdAt.toISOString(),
+    }))
+
+    return NextResponse.json<PostsIndexResponse>( { posts:responsePosts }, { status: 200 })
 
   } catch (error) {
     if (error instanceof Error) {
@@ -40,8 +53,8 @@ export const GET = async () => {
 export type CreatePostBody = {
   title: string
   content: string
-  thumbnailUrl: string
-  categoryIds: {id: number}[]
+  thumbnailImageKey: string
+  categoryIds: number[]
 }
 
 export type CreatePostResponse = {
@@ -51,7 +64,8 @@ export type CreatePostResponse = {
 export const POST = async (req: Request) => {
   try {
     const body: CreatePostBody = await req.json()
-    const { title, content, thumbnailUrl, categoryIds } = body
+    console.log(body)
+    const { title, content, thumbnailImageKey, categoryIds } = body
 
     if (!title || !content) {
       return NextResponse.json({ message: "title and content are required "},{ status: 400 })
@@ -65,11 +79,11 @@ export const POST = async (req: Request) => {
       data: {
         title,
         content,
-        thumbnailUrl,
+        thumbnailImageKey,
         postCategories: {
-          create: categoryIds.map((category) => ({
+          create: categoryIds.map((categoryId) => ({
             category: {
-              connect: { id: category.id }
+              connect: { id: categoryId },
             }
           }))
         }

@@ -5,7 +5,7 @@ export type CategoriesIndexResponse = {
   categories: {
     id: number
     name: string
-    createdAt: Date
+    createdAt: string
   }[]
 }
 
@@ -22,7 +22,12 @@ export const GET = async () => {
       },
     })
 
-    return NextResponse.json<CategoriesIndexResponse>({ categories }, { status:200 })
+    const responseCategories = categories.map((category) => ({
+      ...category,
+      createdAt: category.createdAt.toISOString(),
+    }))
+
+    return NextResponse.json<CategoriesIndexResponse>({ categories:responseCategories }, { status:200 })
 
   } catch (error) {
     if (error instanceof Error) {
