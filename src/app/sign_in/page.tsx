@@ -2,8 +2,8 @@
 
 import AuthForm, { AuthFormValues } from '../_components/AuthForm'
 import { supabase } from '@/app/_libs/supabase' // 前の工程で作成したファイル
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Button } from '../_components/Button'
 
 export default function Page() {
   const router = useRouter()
@@ -15,8 +15,7 @@ export default function Page() {
     })
 
     if (error) {
-      alert('ログインに失敗しました')
-      return
+      throw new Error(error.message)
     }
 
     router.replace('/admin')
@@ -25,14 +24,13 @@ export default function Page() {
   return (
     <>
       <AuthForm
+        topTitle="ログイン"
         buttonText="ログイン"
         onSubmit={handleSubmit}
         bottomLink={
-          <Link href="/sign_up"
-            className="block w-full text-center rounded-lg border focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium text-sm px-5 py-2 hover:bg-gray-100"
-          >
+          <Button variant="secondary" href="/sign_up" className="block w-full">
             新規登録
-          </Link>
+          </Button>
         }
       />
     </> 

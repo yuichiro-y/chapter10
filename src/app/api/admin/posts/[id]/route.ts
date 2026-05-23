@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/app/_libs/prisma"
+import { supabase } from "@/app/_libs/supabase"
 
 export type PostShowResponse = {
   post:{
@@ -20,7 +21,14 @@ export type PostShowResponse = {
 
 type Params = { params: { id: string }}
 
-export const GET = async ( _req: Request, { params }: Params ) => {
+export const GET = async ( req: Request, { params }: Params ) => {
+  const token = req.headers.get('Authorization') ?? ''
+  const { error } = await supabase.auth.getUser(token)
+
+  if (error) {
+    return NextResponse.json({ message: error.message }, { status: 401 })
+  }
+
   try {
     const id = Number(params.id)
     
@@ -67,6 +75,13 @@ type PutPostRequest = {
 }
 
 export const PUT = async ( req: Request, { params }: Params) => {
+  const token = req.headers.get('Authorization') ?? ''
+  const { error } = await supabase.auth.getUser(token)
+
+  if (error) {
+    return NextResponse.json({ message: error.message }, { status: 401 })
+  }
+
   try {
     const body: PutPostRequest = await req.json()
     const { title, content, thumbnailImageKey, categoryIds } = body
@@ -113,7 +128,14 @@ export const PUT = async ( req: Request, { params }: Params) => {
 }
 
 
-export const DELETE = async( _req: Request, { params }: Params) => {
+export const DELETE = async( req: Request, { params }: Params) => {
+  const token = req.headers.get('Authorization') ?? ''
+  const { error } = await supabase.auth.getUser(token)
+
+  if (error) {
+    return NextResponse.json({ message: error.message }, { status: 401 })
+  }
+
   try {
     const post = await prisma.post.findUnique({
       where: {

@@ -2,6 +2,7 @@
 
 import AuthForm, { AuthFormValues } from '../_components/AuthForm'
 import { supabase } from '@/app/_libs/supabase' // 前の工程で作成したファイル
+import { Button } from '../_components/Button'
 
 export default function Page() {
   const handleSubmit = async ({ email, password}: AuthFormValues) => {
@@ -9,7 +10,7 @@ export default function Page() {
       email,
       password,
       options: {
-        emailRedirectTo: 'http://localhost:3000/sign_in',
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/sign_in`,
       },
     })
 
@@ -24,8 +25,14 @@ export default function Page() {
   return (
     <>
       <AuthForm
+        topTitle="新規登録"
         buttonText="登録"
         onSubmit={handleSubmit}
+        bottomLink={
+          <Button variant="secondary" href="/sign_in" className="block w-full">
+            戻る
+          </Button>
+        }        
       />
     </> 
   )

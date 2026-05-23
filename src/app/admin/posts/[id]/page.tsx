@@ -7,6 +7,7 @@ import type { PostFormValues } from "@/app/admin/_components/PostForm";
 import { BackButton, DeleteButton, UpdateButton } from "@/app/admin/_components/Button";
 import type { CategoriesIndexResponse } from "@/app/api/admin/categories/route";
 import type { PostShowResponse } from "@/app/api/posts/[id]/route";
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 
 type Props = {
   params: {
@@ -28,12 +29,20 @@ export default function AdminPostsEditPage({params}: Props) {
   const [errorMessage, setErrorMessage] = useState("");
   const [, setTitleErrorMessage] = useState("");
   const [, setContentErrorMessage] = useState("");
+  const { token } = useSupabaseSession();
 
   // 記事の情報取得
   useEffect(() => {
+    if (!token) return;
+
     const fetchPost = async () => {
       try {
-        const res = await fetch(`/api/admin/posts/${params.id}`);
+        const res = await fetch(`/api/admin/posts/${params.id}`,{
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: token,
+          } 
+        });
 
         if (!res.ok) {
           throw new Error("記事の情報の取得に失敗しました");
@@ -49,8 +58,6 @@ export default function AdminPostsEditPage({params}: Props) {
             (postCategory: { category: { id: number } }) => postCategory.category.id
           )
         );
-
-        console.log(data);
         
       } catch (error) {
         console.error(error);
@@ -60,22 +67,35 @@ export default function AdminPostsEditPage({params}: Props) {
       }
     }
     fetchPost();
-  }, [params.id]);
+  }, [params.id, token]);
 
   // カテゴリーの取得
   useEffect(() => {
     const fetchCategories = async () => {
-        const res = await fetch(`/api/admin/categories`);
-        const data: CategoriesIndexResponse = await res.json();
-        if (!res.ok) {
-          throw new Error("カテゴリの取得に失敗しました");
-        }
-        setCategories(data.categories);
-      };
+      if (!token) return;
+      const res = await fetch(`/api/admin/categories`,{
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token,
+        },
+      });
+      
+      const data: CategoriesIndexResponse = await res.json();
+
+      if (!res.ok) {
+        throw new Error("カテゴリの取得に失敗しました");
+      }
+
+      setCategories(data.categories);
+    };
     fetchCategories();
-  }, []);
+  }, [token]);
 
   const handleUpdate = async (values: PostFormValues) => {
+    if (!token) {
+      throw new Error('ログイン情報が取得できません');
+    }
+
     if (!values.title.trim()) {
       setTitleErrorMessage("タイトルを入力してください");
       return;
@@ -91,6 +111,7 @@ export default function AdminPostsEditPage({params}: Props) {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: token,
         },
         body: JSON.stringify({
           title: values.title,
@@ -99,8 +120,6 @@ export default function AdminPostsEditPage({params}: Props) {
           categoryIds: values.categoryIds,
         }),
       });
-
-      console.log("status", res)
 
       if (!res.ok) {
         throw new Error("記事の更新に失敗しました");
@@ -119,12 +138,21 @@ export default function AdminPostsEditPage({params}: Props) {
     if (!confirm("本当にこの記事を削除しますか？")) {
       return;
     }
+
+    if (!token) {
+      setErrorMessage("ログイン情報が取得できません");
+      return;
+    }    
     
+    setIsSubmitting(true);
+    setErrorMessage("");
+
     try {
-      setIsSubmitting(true);
-      setErrorMessage("");
       const res = await fetch(`/api/admin/posts/${params.id}`, {
-        method: "DELETE"
+        method: "DELETE",
+        headers: {
+          Authorization: token,
+        },
       });
 
       if (!res.ok) {

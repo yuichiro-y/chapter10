@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react";
+import React, { useState } from "react";
+import { Button } from "./Button";
 
 export type AuthFormValues = {
   email: string;
@@ -11,6 +12,7 @@ export type AuthFormProps = {
   initialValues?: AuthFormValues;
   onSubmit: (values: AuthFormValues) => Promise<void>;
   buttonText: string;
+  topTitle?: string;
   bottomLink?: React.ReactNode
 }
 
@@ -18,25 +20,31 @@ export default function AuthForm({
   initialValues = { email: '', password: '' }, 
   onSubmit,
   buttonText,
+  topTitle,
   bottomLink,
 }: AuthFormProps) {
   const [email, setEmail] = useState(initialValues.email);
-  const [password, setPassword] = useState(initialValues.password)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [password, setPassword] = useState(initialValues.password);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMessage('');
 
     try {
       await onSubmit({ email, password });
+    } catch {
+      setErrorMessage('認証に失敗しました。メールアドレスまたはパスワードを確認してください。');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="max-w-[600px] mx-auto my-20 px-2 text-left">
+    <div className="max-w-[600px] mx-auto my-10 px-2 text-left">
+      <h1 className="font-bold text-xl mb-9">{topTitle}</h1>
       <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-100">
         <div>
           <label
@@ -68,6 +76,7 @@ export default function AuthForm({
             type="password"
             name="password"
             id="password"
+            value={password}
             placeholder="••••••••"
             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             required
@@ -76,13 +85,13 @@ export default function AuthForm({
           />
         </div>
 
-        <button 
-          type="submit"
-          className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"  
-          disabled={isSubmitting}
-        >
+        {errorMessage && (
+          <p className="text-sm text-red-500">{errorMessage}</p>
+        )}
+
+        <Button type="submit" disabled={isSubmitting} className="w-full">
           {buttonText}
-        </button>
+        </Button>
 
         {bottomLink}
       </form>

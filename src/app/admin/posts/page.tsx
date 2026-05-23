@@ -29,9 +29,8 @@ export default function AdminPostsPage() {
           throw new Error("記事一覧の取得に失敗しました");
         }
 
-        const { posts } = await res.json();
-        
-        setPosts([...posts]);
+        const data: PostsIndexResponse = await res.json();
+        setPosts(data.posts);
       } catch (e) {
         console.error(e);
       } finally {

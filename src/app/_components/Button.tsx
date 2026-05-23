@@ -1,48 +1,55 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 
-export function CreateButton({ form }: { form?: string }) {
+type ButtonProps = {
+  children: ReactNode;
+  type?: "button" | "submit";
+  href?: string;
+  form?: string;
+  onClick?: () => void;
+  disabled?: boolean;
+  variant?: "primary" | "danger" | "secondary";
+  className?: string;
+};
+
+export function Button({
+  children,
+  type = "button",
+  href,
+  form,
+  onClick,
+  disabled = false,
+  variant = "primary",
+  className = "",
+}: ButtonProps) {
+  const base =
+    "font-medium rounded-lg text-sm px-5 py-2.5 text-center disabled:opacity-50 disabled:cursor-not-allowed";
+
+  const styles = {
+    primary: "text-white bg-blue-700 hover:bg-blue-800",
+    danger: "text-white bg-red-600 hover:bg-red-700",
+    secondary: "text-gray-900 bg-transparent border border-gray-300 hover:bg-gray-100",
+  };
+
+  const buttonClassName = `${base} ${styles[variant]} ${className}`;
+
+  if (href) {
+    return (
+      <Link href={href} className={buttonClassName}>
+        {children}
+      </Link>
+    );
+  }
+
   return (
     <button
-      type="submit"
+      type={type}
       form={form}
-      className="rounded bg-blue-600 mt-4 px-4 py-2 text-white hover:bg-blue-700"
-    >
-      作成
-    </button>
-  );
-}
-
-export function UpdateButton({ form }: { form?: string }) {
-  return (
-    <button
-      type="submit"
-      form={form}
-      className="rounded bg-blue-600 mt-4 px-4 py-2 text-white hover:bg-blue-700"
-    >
-      更新
-    </button>
-  );
-}
-
-export function DeleteButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      type="button"
       onClick={onClick}
-      className="rounded bg-red-600 mt-4 px-4 py-2 text-white hover:bg-red-700"
+      disabled={disabled}
+      className={buttonClassName}
     >
-      削除
+      {children}
     </button>
-  );
-}
-
-export function BackButton({ href }: { href: string }) {
-  return (
-    <Link
-      href={href}
-      className="rounded border mt-4 px-4 py-2 hover:bg-gray-100"
-    >
-      戻る
-    </Link>
   );
 }

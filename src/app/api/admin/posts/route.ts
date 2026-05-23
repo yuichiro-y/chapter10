@@ -11,8 +11,8 @@ export type PostsIndexResponse = {
   }[]
 }
 
-export const GET = async (request: NextRequest) => {
-    const token = request.headers.get('Authorization') ?? ''
+export const GET = async (req: Request) => {
+    const token = req.headers.get('Authorization') ?? ''
     const { error } = await supabase.auth.getUser(token)
 
     if (error)
@@ -62,9 +62,15 @@ export type CreatePostResponse = {
 }
 
 export const POST = async (req: Request) => {
+  const token = req.headers.get('Authorization') ?? ''
+  const { error } = await supabase.auth.getUser(token)
+
+  if (error) {
+    return NextResponse.json({ message: error.message }, { status: 401 })
+  }
+
   try {
     const body: CreatePostBody = await req.json()
-    console.log(body)
     const { title, content, thumbnailImageKey, categoryIds } = body
 
     if (!title || !content) {

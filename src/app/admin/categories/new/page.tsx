@@ -5,13 +5,19 @@ import { useRouter } from "next/navigation";
 import CategoryForm from "@/app/admin/_components/CategoryForm";
 import type { CategoryFormValues } from "@/app/admin/_components/CategoryForm";
 import { CreateButton, BackButton } from "@/app/admin/_components/Button";
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 
 export default function AdminCategoriesPage() {
   const router = useRouter();
   const [, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const { token } = useSupabaseSession();
 
   const handleSubmit = async (values: CategoryFormValues) => {
+    if (!token) {
+      throw new Error('ログイン情報が取得できません');
+    }
+
     if (!values.name.trim()) {
       setErrorMessage("カテゴリー名を入力してください");
       return;
@@ -25,6 +31,7 @@ export default function AdminCategoriesPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: token,
         },
         body: JSON.stringify(values),
       });
@@ -36,7 +43,7 @@ export default function AdminCategoriesPage() {
       router.push("/admin/categories");
     } catch (error) {
       console.error(error);
-      setErrorMessage("カテゴリーの作成に失敗しましたa");
+      setErrorMessage("カテゴリーの作成に失敗しました");
     } finally {
       setIsSubmitting(false);
     }

@@ -6,6 +6,7 @@ import PostForm from "@/app/admin/_components/PostForm";
 import type { PostFormValues } from "@/app/admin/_components/PostForm";
 import { BackButton, CreateButton } from "@/app/admin/_components/Button";
 import type { CategoriesIndexResponse } from "@/app/api/admin/categories/route";
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 
 type Category = CategoriesIndexResponse["categories"][number];
 
@@ -15,18 +16,40 @@ export default function AdminPostsPage() {
   const [titleErrorMessage, setTitleErrorMessage] = useState("");
   const [contentErrorMessage, setContentErrorMessage] = useState("");
   const [thumbnailUrlErrorMessage, setThumbnailUrlErrorMessage] = useState("");
+  const [loading,setLoading] = useState(true);
+  const { token } = useSupabaseSession();
+
 
   useEffect(()=> {
+    if (!token) return
+
     const fetchCategories = async () => {
-        const res = await fetch("/api/admin/categories");
+      try {
+        const res = await fetch("/api/admin/categories",{
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: token,
+          } 
+        });
+
         const data: CategoriesIndexResponse = await res.json();
         setCategories(data.categories);
-      };
-      
-      fetchCategories();
-  }, []);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, [token]);
+
+  if (loading) return <p>読み込み中...</p>;  
 
   const handleCreate = async (values: PostFormValues) => {
+    if (!token) {
+      throw new Error('ログイン情報が取得できません');
+    }
+
     if (!values.title.trim()) {
       setTitleErrorMessage("タイトルを入力してください");
       return;
@@ -46,6 +69,7 @@ export default function AdminPostsPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: token,
         },
         body: JSON.stringify(values),
       });

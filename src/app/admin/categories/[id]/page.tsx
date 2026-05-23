@@ -6,6 +6,7 @@ import { UpdateButton, DeleteButton, BackButton } from "@/app/admin/_components/
 import CategoryForm from "@/app/admin/_components/CategoryForm";
 import { CategoryShowResponse } from "@/app/api/admin/categories/[id]/route";
 import type { CategoryFormValues } from "@/app/admin/_components/CategoryForm";
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 
 type Props = {
   params: {
@@ -19,11 +20,19 @@ export default function AdminCategoryEditPage({ params }: Props) {
   const [loading, setLoading] = useState(true);
   const [, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const { token } = useSupabaseSession();
 
-  useEffect(() => {
-    const fetcher = async () => {
+  useEffect(() => {  
+    const fetcheCategories = async () => {
+      if (!token) return;
+
       try {
-        const res = await fetch(`/api/admin/categories/${params.id}`);
+        const res = await fetch(`/api/admin/categories/${params.id}`,{
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: token,
+          } 
+        });
 
         if (!res.ok) {
           throw new Error("カテゴリーの情報の取得に失敗しました");
@@ -38,8 +47,8 @@ export default function AdminCategoryEditPage({ params }: Props) {
         setLoading(false);
       }
     }
-    fetcher();
-  }, [params.id]);
+    fetcheCategories();
+  }, [params.id,token]);
 
   const handleSubmit = async (values: CategoryFormValues) => {
     if (!values.name.trim()) {
@@ -51,10 +60,12 @@ export default function AdminCategoryEditPage({ params }: Props) {
       setIsSubmitting(true);
       setErrorMessage("");
 
+      if (!token) return;
       const res = await fetch(`/api/admin/categories/${params.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: token,          
         },
         body: JSON.stringify(values),
       });
@@ -80,10 +91,15 @@ export default function AdminCategoryEditPage({ params }: Props) {
       setIsSubmitting(true);
       setErrorMessage("");
 
+      if (!token) {
+        setErrorMessage("ログイン情報が取得できません");
+        return;
+      }
+
       const res = await fetch(`/api/admin/categories/${params.id}`, {
         method: "DELETE",
         headers: {
-          "x-admin-token": process.env.NEXT_PUBLIC_ADMIN_TOKEN ?? "",
+          Authrization: token,
         },
       });
 

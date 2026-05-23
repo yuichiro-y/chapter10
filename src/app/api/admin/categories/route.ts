@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/app/_libs/prisma"
+import { supabase } from "@/app/_libs/supabase"
 
 export type CategoriesIndexResponse = {
   categories: {
@@ -9,7 +10,14 @@ export type CategoriesIndexResponse = {
   }[]
 }
 
-export const GET = async () => {
+export const GET = async (req: Request) => {
+  const token = req.headers.get('Authorization') ?? ''
+  const { error } = await supabase.auth.getUser(token)
+
+  if (error) {
+    return NextResponse.json({ message: error.message }, { status: 401 })
+  }
+  
   try { 
     const categories = await prisma.category.findMany({
       select: {
@@ -46,6 +54,13 @@ type CreateCategoryResponse = {
 }
 
 export const POST = async ( req: Request ) => {
+  const token = req.headers.get('Authorization') ?? ''
+  const { error } = await supabase.auth.getUser(token)
+
+  if (error) {
+    return NextResponse.json({ message: error.message }, { status: 401 })
+  }
+
   try {
     const body: CreateCategoryBody = await req.json()
     const { name } = body
@@ -58,7 +73,7 @@ export const POST = async ( req: Request ) => {
     const data = await prisma.category.create({
       data: { name: trimmedName }
     })
-    console.log(data)
+
     return NextResponse.json<CreateCategoryResponse>({ id: data.id },{ status: 201 })
 
   } catch ( error ){
