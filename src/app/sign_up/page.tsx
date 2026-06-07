@@ -15,8 +15,7 @@ export default function Page() {
     })
 
     if (error) {
-      alert('登録に失敗しました')
-      return
+      throw new Error(error.message)
     }
 
     alert('確認メールを送信しました')

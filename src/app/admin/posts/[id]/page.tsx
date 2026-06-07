@@ -6,8 +6,9 @@ import PostForm from "@/app/admin/_components/PostForm";
 import type { PostFormValues } from "@/app/admin/_components/PostForm";
 import { BackButton, DeleteButton, UpdateButton } from "@/app/admin/_components/Button";
 import type { CategoriesIndexResponse } from "@/app/api/admin/categories/route";
-import type { PostShowResponse } from "@/app/api/posts/[id]/route";
+import type { PostShowResponse } from "@/app/api/admin/posts/[id]/route";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import useSWR from "swr";
 
 type Props = {
   params: {
@@ -15,7 +16,39 @@ type Props = {
   };
 };
 
-type Category = PostShowResponse["post"]["postCategories"][number]["category"]
+// 記事の情報取得
+const postFetcher = async ([url, token]:[string, string]) => {
+  const res = await fetch(url ,{
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("記事データの取得に失敗しました");
+  }
+
+  const data: PostShowResponse = await res.json();
+  return data.post;
+};
+
+// カテゴリーの取得
+const categoriesFetcher = async ([url, token]:[string, string]) => {
+  const res = await fetch(url ,{
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: token,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("カテゴリーの取得に失敗しました");
+  }
+
+  const data: CategoriesIndexResponse = await res.json();
+  return data.categories;
+}  
 
 export default function AdminPostsEditPage({params}: Props) {
   const router = useRouter();
@@ -23,102 +56,53 @@ export default function AdminPostsEditPage({params}: Props) {
   const [content, setContent] = useState("");
   const [thumbnailImageKey, setThumbnailImageKey] = useState("");
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [, setTitleErrorMessage] = useState("");
-  const [, setContentErrorMessage] = useState("");
   const { token } = useSupabaseSession();
+  const {
+    data: post,
+    error: postError,
+    isLoading: isPostLoading,
+  } = useSWR(
+    token ? [`/api/admin/posts/${params.id}`, token] : null,
+    postFetcher
+  );
+  const {
+    data: categories,
+    error: categoriesError,
+    isLoading: isCategoriesLoading,
+  } = useSWR(
+    token ? ["/api/admin/categories", token] : null,
+    categoriesFetcher
+  )
 
-  // 記事の情報取得
   useEffect(() => {
-    if (!token) return;
+    if (!post) return;
 
-    const fetchPost = async () => {
-      try {
-        const res = await fetch(`/api/admin/posts/${params.id}`,{
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: token,
-          } 
-        });
-
-        if (!res.ok) {
-          throw new Error("記事の情報の取得に失敗しました");
-        }
-
-        const data = await res.json();
-        setTitle(data.post.title);
-        setContent(data.post.content);
-        setThumbnailImageKey(data.post.thumbnailImageKey);
-        //中間テーブル
-        setSelectedCategoryIds(
-          data.post.postCategories.map(
-            (postCategory: { category: { id: number } }) => postCategory.category.id
-          )
-        );
-        
-      } catch (error) {
-        console.error(error);
-        setErrorMessage("記事の情報の取得に失敗しました");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchPost();
-  }, [params.id, token]);
-
-  // カテゴリーの取得
-  useEffect(() => {
-    const fetchCategories = async () => {
-      if (!token) return;
-      const res = await fetch(`/api/admin/categories`,{
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token,
-        },
-      });
-      
-      const data: CategoriesIndexResponse = await res.json();
-
-      if (!res.ok) {
-        throw new Error("カテゴリの取得に失敗しました");
-      }
-
-      setCategories(data.categories);
-    };
-    fetchCategories();
-  }, [token]);
+    setTitle(post.title);
+    setContent(post.content);
+    setThumbnailImageKey(post.thumbnailImageKey);
+    setSelectedCategoryIds(
+      post.postCategories.map((postCategory) => postCategory.category.id)
+    );
+  },[post]);
 
   const handleUpdate = async (values: PostFormValues) => {
     if (!token) {
       throw new Error('ログイン情報が取得できません');
     }
 
-    if (!values.title.trim()) {
-      setTitleErrorMessage("タイトルを入力してください");
-      return;
-    }
-
-    if (!values.content.trim()) {
-      setContentErrorMessage("記事内容を入力してください");
-      return;
-    }
-
     try {
+      setIsSubmitting(true);
+      setErrorMessage("");
+
       const res = await fetch(`/api/admin/posts/${params.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: token,
         },
-        body: JSON.stringify({
-          title: values.title,
-          content: values.content,
-          thumbnailImageKey: values.thumbnailImageKey,
-          categoryIds: values.categoryIds,
-        }),
+        body: JSON.stringify(values),
       });
 
       if (!res.ok) {
@@ -142,12 +126,12 @@ export default function AdminPostsEditPage({params}: Props) {
     if (!token) {
       setErrorMessage("ログイン情報が取得できません");
       return;
-    }    
-    
-    setIsSubmitting(true);
-    setErrorMessage("");
+    }
 
     try {
+      setIsSubmitting(true);
+      setErrorMessage("");
+      
       const res = await fetch(`/api/admin/posts/${params.id}`, {
         method: "DELETE",
         headers: {
@@ -168,13 +152,19 @@ export default function AdminPostsEditPage({params}: Props) {
     }
   }
 
-  if (isLoading) {
+  if (isPostLoading || isCategoriesLoading) {
     return <p>Loading...</p>;
+  }
+
+  if (postError || categoriesError) {
+    return <p>データの取得に失敗しました</p>
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-2">記事編集</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold py-[4px]">記事編集</h1>
+      </div>
       <PostForm
         formId="post-edit-form"
         initialValues={{
@@ -183,7 +173,7 @@ export default function AdminPostsEditPage({params}: Props) {
           thumbnailImageKey,
           categoryIds: selectedCategoryIds,
         }}
-        categories={categories}
+        categories={categories ?? []}
         onSubmit={handleUpdate}
       />
 
@@ -192,9 +182,8 @@ export default function AdminPostsEditPage({params}: Props) {
       )}  
 
       <div className="mt-4 flex gap-3">
-        <UpdateButton form="post-edit-form" />
-        <DeleteButton onClick={handleDelete} />
-
+        <UpdateButton form="post-edit-form" disabled={isSubmitting}/>
+        <DeleteButton onClick={handleDelete} disabled={isSubmitting}/>
         <BackButton href="/admin/posts" />
       </div>
     </div>

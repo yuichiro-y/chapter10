@@ -1,46 +1,41 @@
 "use client"
 
-import { useEffect, useState } from "react";
-import { CategoriesIndexResponse } from "@/app/api/admin/categories/route";
+import type { CategoriesIndexResponse } from "@/app/api/admin/categories/route";
 import Link from "next/link"
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import useSWR from "swr";
 
-type Category = CategoriesIndexResponse["categories"][number];
+type Categories = CategoriesIndexResponse["categories"][number];
+
+const fetcher = async ([url, token]:[string, string]) => {
+  const res = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: token,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("カテゴリー一覧の取得に失敗しました");
+  }
+
+  const data: CategoriesIndexResponse = await res.json();
+  return data.categories;
+};
 
 export default function AdminCategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
   const { token } = useSupabaseSession();
+  const {
+    data: categories,
+    error,
+    isLoading,
+  } = useSWR<Categories[]>(
+    token ? ["/api/admin/categories", token] : null,
+    fetcher
+  )
 
-  useEffect(()=> {
-    if (!token) return
-
-    const fetcher = async () => {
-      try {
-        const res = await fetch("/api/admin/categories",{
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: token,
-          } 
-        });
-
-        if (!res.ok) {
-          throw new Error("カテゴリー一覧の取得に失敗しました");
-        }
-
-        const data: CategoriesIndexResponse = await res.json();
-        setCategories(data.categories);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetcher();
-  }, [token]);
-
-  if (loading) return <p>読み込み中...</p>;
+  if (isLoading) return <p>読み込み中...</p>;
+  if (error) return <p>カテゴリー一覧の取得に失敗しました</p>;
 
   return (
     <div>
@@ -51,11 +46,15 @@ export default function AdminCategoriesPage() {
         </Link>
       </div>
 
+      {error && (
+        <p className="text-sm text-red-500">{error.message}</p>
+      )}
+
       <ul className="divide-y border rounded">
-        {categories.map((Category)=> (
-          <li key={Category.id}>
-            <Link href={`/admin/categories/${Category.id}`} className="block p-4 hover:bg-slate-50">
-              {Category.name}
+        {categories?.map((category)=> (
+          <li key={category.id}>
+            <Link href={`/admin/categories/${category.id}`} className="block p-4 hover:bg-slate-50">
+              {category.name}
             </Link>
           </li>
         ))}

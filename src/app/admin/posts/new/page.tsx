@@ -1,49 +1,44 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import PostForm from "@/app/admin/_components/PostForm";
 import type { PostFormValues } from "@/app/admin/_components/PostForm";
 import { BackButton, CreateButton } from "@/app/admin/_components/Button";
 import type { CategoriesIndexResponse } from "@/app/api/admin/categories/route";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import useSWR from "swr";
 
-type Category = CategoriesIndexResponse["categories"][number];
+const categoriesFetcher = async ([url, token]:[string, string]) => {
+  const res = await fetch(url ,{
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token,
+    } 
+  });
+
+  if (!res.ok) {
+    throw new Error("記事データの取得に失敗しました");
+  }
+
+  const data: CategoriesIndexResponse = await res.json();
+  return data.categories;
+}
 
 export default function AdminPostsPage() {
   const router = useRouter();
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [titleErrorMessage, setTitleErrorMessage] = useState("");
   const [contentErrorMessage, setContentErrorMessage] = useState("");
-  const [thumbnailUrlErrorMessage, setThumbnailUrlErrorMessage] = useState("");
-  const [loading,setLoading] = useState(true);
   const { token } = useSupabaseSession();
-
-
-  useEffect(()=> {
-    if (!token) return
-
-    const fetchCategories = async () => {
-      try {
-        const res = await fetch("/api/admin/categories",{
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: token,
-          } 
-        });
-
-        const data: CategoriesIndexResponse = await res.json();
-        setCategories(data.categories);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCategories();
-  }, [token]);
-
-  if (loading) return <p>読み込み中...</p>;  
+  const {
+    data: categories,
+    error: categoriesError,
+    isLoading: isCategoriesLoading,
+  } = useSWR(
+    token ? [`/api/admin/categories`, token] : null,
+    categoriesFetcher
+  );
 
   const handleCreate = async (values: PostFormValues) => {
     if (!token) {
@@ -60,10 +55,8 @@ export default function AdminPostsPage() {
       return;
     }
 
-    if (!values.thumbnailImageKey.trim()) {
-      setThumbnailUrlErrorMessage("サムネイルURLを入力してください");
-      return;
-    }
+    try {
+      setIsSubmitting(true)
 
       const res = await fetch("/api/admin/posts", {
         method: "POST",
@@ -80,11 +73,28 @@ export default function AdminPostsPage() {
       }
 
       router.push("/admin/posts");
-    };
+    } catch (error) {
+      console.error(error)
+      alert("記事の作成に失敗しました")
+    } finally {
+      setIsSubmitting(false)
+    }
+  };
+
+  if (isCategoriesLoading) {
+    return <p>Loading...</p>;
+  }
+
+  if (categoriesError) {
+    return <p>データの取得に失敗しました</p>
+  }
 
   return (
     <div>
-      <h1 className="text-xl font-bold">新規作成</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold py-[4px]">記事作成</h1>
+      </div>
+
       <PostForm
         formId="post-create-form"
         initialValues={{
@@ -93,8 +103,9 @@ export default function AdminPostsPage() {
           thumbnailImageKey: "",
           categoryIds: [],
         }}
-        categories={categories}
+        categories={categories ?? []}
         onSubmit={handleCreate}
+        disabled={isSubmitting}
       />
 
       {titleErrorMessage && (
@@ -103,13 +114,9 @@ export default function AdminPostsPage() {
       {contentErrorMessage && (
         <p className="text-sm text-red-500">{contentErrorMessage}</p>
       )}
-      {thumbnailUrlErrorMessage && (
-        <p className="text-sm text-red-500">{thumbnailUrlErrorMessage}</p>
-      )}
 
       <div className="mt-4 flex gap-3">
-        <CreateButton form="post-create-form" />
-
+        <CreateButton form="post-create-form" disabled={isSubmitting}/>
         <BackButton href="/admin/posts" />
       </div>
     </div>

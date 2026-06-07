@@ -1,12 +1,13 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { UpdateButton, DeleteButton, BackButton } from "@/app/admin/_components/Button";
 import CategoryForm from "@/app/admin/_components/CategoryForm";
-import { CategoryShowResponse } from "@/app/api/admin/categories/[id]/route";
+import type { CategoryShowResponse } from "@/app/api/admin/categories/[id]/route";
 import type { CategoryFormValues } from "@/app/admin/_components/CategoryForm";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import useSWR from "swr";
 
 type Props = {
   params: {
@@ -14,41 +15,35 @@ type Props = {
   };
 };
 
+const fetcher = async ([url, token]: [string, string]) => {
+  const res = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("カテゴリーの情報の取得に失敗しました");
+  }
+  
+  const data: CategoryShowResponse = await res.json();
+  return data.category
+}
+
 export default function AdminCategoryEditPage({ params }: Props) {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const { token } = useSupabaseSession();
-
-  useEffect(() => {  
-    const fetcheCategories = async () => {
-      if (!token) return;
-
-      try {
-        const res = await fetch(`/api/admin/categories/${params.id}`,{
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: token,
-          } 
-        });
-
-        if (!res.ok) {
-          throw new Error("カテゴリーの情報の取得に失敗しました");
-        }
-        
-        const data: CategoryShowResponse = await res.json();
-        setName(data.category.name);
-      } catch (error) {
-        console.error(error);
-        setErrorMessage("カテゴリーの情報の取得に失敗しました");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetcheCategories();
-  }, [params.id,token]);
+  const {
+    data: category,
+    error,
+    isLoading,
+  } = useSWR<CategoryShowResponse["category"]>(
+    token ? [`/api/admin/categories/${params.id}`, token] : null,
+    fetcher
+  );
 
   const handleSubmit = async (values: CategoryFormValues) => {
     if (!values.name.trim()) {
@@ -56,11 +51,15 @@ export default function AdminCategoryEditPage({ params }: Props) {
       return;
     }
 
-    try {
-      setIsSubmitting(true);
-      setErrorMessage("");
+    if (!token) {
+      setErrorMessage("ログイン情報が取得できません");
+      return;
+    }
 
-      if (!token) return;
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    try {
       const res = await fetch(`/api/admin/categories/${params.id}`, {
         method: "PUT",
         headers: {
@@ -86,20 +85,20 @@ export default function AdminCategoryEditPage({ params }: Props) {
   const handleDelete = async () => {
     const ok =  window.confirm("本当にこのカテゴリーを削除しますか？");
     if (!ok) return;
+    
+    if (!token) {
+      setErrorMessage("ログイン情報が取得できません");
+      return;
+    }    
 
     try {
       setIsSubmitting(true);
       setErrorMessage("");
 
-      if (!token) {
-        setErrorMessage("ログイン情報が取得できません");
-        return;
-      }
-
       const res = await fetch(`/api/admin/categories/${params.id}`, {
         method: "DELETE",
         headers: {
-          Authrization: token,
+          Authorization: token,
         },
       });
 
@@ -117,17 +116,19 @@ export default function AdminCategoryEditPage({ params }: Props) {
     }
   };
 
-  if (loading) return <p>読み込み中...</p>;
+  if (isLoading) return <p>読み込み中...</p>;  
+  if (error) return <p>カテゴリーの取得に失敗しました</p>;
+  if (!category) return <p>カテゴリーが見つかりません</p>;  
 
   return (
     <div>
-      <div className="mb=6">
-        <h1 className="text-2xl font-bold mb-3">カテゴリー編集</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold py-[4px]">カテゴリー編集</h1>
       </div>
 
       <CategoryForm formId="category-edit-form"
         initialValues={{
-          name,
+          name: category.name,
         }}
         onSubmit={handleSubmit}
       />
@@ -137,8 +138,8 @@ export default function AdminCategoryEditPage({ params }: Props) {
       )}
 
       <div className="flex gap-3">
-        <UpdateButton form="category-edit-form" />
-        <DeleteButton onClick={handleDelete} />
+        <UpdateButton form="category-edit-form" disabled={isSubmitting}/>
+        <DeleteButton onClick={handleDelete} disabled={isSubmitting}/>
         <BackButton href="/admin/categories"/>
       </div>
     </div>

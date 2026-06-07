@@ -19,7 +19,7 @@ export default function AdminPostsPage() {
         const res = await fetch("/api/admin/posts",{
           headers: {
             'Content-Type': 'application/json',
-            Authrization: token,
+            Authorization: token,
           } 
         })
 

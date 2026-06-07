@@ -9,7 +9,7 @@ import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 
 export default function AdminCategoriesPage() {
   const router = useRouter();
-  const [, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const { token } = useSupabaseSession();
 
@@ -51,8 +51,8 @@ export default function AdminCategoriesPage() {
 
   return (
     <div>
-      <div className="mb-6 items-center">
-        <h1 className="text-2xl font-bold mb-3">カテゴリー作成</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold py-[4px]">カテゴリー作成</h1>
       </div>
   
       <CategoryForm formId="category-create-form"
@@ -67,7 +67,7 @@ export default function AdminCategoriesPage() {
       )}
 
       <div className="flex gap-3">
-        <CreateButton form="category-create-form" />
+        <CreateButton form="category-create-form" disabled={isSubmitting}/>
         <BackButton href="/admin/categories" />
       </div>
     </div>
