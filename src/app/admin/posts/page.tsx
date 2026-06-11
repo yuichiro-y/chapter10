@@ -2,38 +2,18 @@
 
 import Link from "next/link";
 import { formatDate } from "@/app/_utils/date";
-import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import type { PostsIndexResponse } from "@/app/api/admin/posts/route";
-import useSWR from "swr";
-
-type Posts = PostsIndexResponse["posts"][number];
-
-const fetcher = async ([url, token]: [string, string]) => {
-  const res = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: token,
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error("記事一覧の取得に失敗しました");
-  }
-
-  const data: PostsIndexResponse = await res.json();
-  return data.posts;
-};
+import { useFetch } from "@/app/_hooks/useFetch";
 
 export default function AdminPostsPage() {
-  const { token } = useSupabaseSession();
   const {
-    data: posts,
+    data: postsData,
     error,
     isLoading,
-  } = useSWR<Posts[]>(
-    token ? ["/api/admin/posts", token] : null,
-    fetcher
-  );
+  } = useFetch<PostsIndexResponse>(
+    "/api/admin/posts"
+  )
+  const posts = postsData?.posts;
 
   if (isLoading) return <p>読み込み中...</p>;
   if (error) return <p>記事一覧の取得に失敗しました</p>;

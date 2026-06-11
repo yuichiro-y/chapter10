@@ -2,37 +2,18 @@
 
 import type { CategoriesIndexResponse } from "@/app/api/admin/categories/route";
 import Link from "next/link"
-import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
-import useSWR from "swr";
-
-type Categories = CategoriesIndexResponse["categories"][number];
-
-const fetcher = async ([url, token]:[string, string]) => {
-  const res = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: token,
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error("カテゴリー一覧の取得に失敗しました");
-  }
-
-  const data: CategoriesIndexResponse = await res.json();
-  return data.categories;
-};
+import { useFetch } from "@/app/_hooks/useFetch";
 
 export default function AdminCategoriesPage() {
-  const { token } = useSupabaseSession();
   const {
-    data: categories,
+    data,
     error,
     isLoading,
-  } = useSWR<Categories[]>(
-    token ? ["/api/admin/categories", token] : null,
-    fetcher
-  )
+  } = useFetch<CategoriesIndexResponse>(
+    "/api/admin/categories"
+  );
+
+const categories = data?.categories ?? []
 
   if (isLoading) return <p>読み込み中...</p>;
   if (error) return <p>カテゴリー一覧の取得に失敗しました</p>;

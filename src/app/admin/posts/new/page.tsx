@@ -7,23 +7,7 @@ import type { PostFormValues } from "@/app/admin/_components/PostForm";
 import { BackButton, CreateButton } from "@/app/admin/_components/Button";
 import type { CategoriesIndexResponse } from "@/app/api/admin/categories/route";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
-import useSWR from "swr";
-
-const categoriesFetcher = async ([url, token]:[string, string]) => {
-  const res = await fetch(url ,{
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: token,
-    } 
-  });
-
-  if (!res.ok) {
-    throw new Error("記事データの取得に失敗しました");
-  }
-
-  const data: CategoriesIndexResponse = await res.json();
-  return data.categories;
-}
+import { useFetch } from "@/app/_hooks/useFetch";
 
 export default function AdminPostsPage() {
   const router = useRouter();
@@ -32,13 +16,13 @@ export default function AdminPostsPage() {
   const [contentErrorMessage, setContentErrorMessage] = useState("");
   const { token } = useSupabaseSession();
   const {
-    data: categories,
+    data: categoriesData,
     error: categoriesError,
     isLoading: isCategoriesLoading,
-  } = useSWR(
-    token ? [`/api/admin/categories`, token] : null,
-    categoriesFetcher
+  } = useFetch<CategoriesIndexResponse>(
+    "/api/admin/categories"
   );
+  const categories = categoriesData?.categories;
 
   const handleCreate = async (values: PostFormValues) => {
     if (!token) {

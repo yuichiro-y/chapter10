@@ -8,47 +8,13 @@ import { BackButton, DeleteButton, UpdateButton } from "@/app/admin/_components/
 import type { CategoriesIndexResponse } from "@/app/api/admin/categories/route";
 import type { PostShowResponse } from "@/app/api/admin/posts/[id]/route";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
-import useSWR from "swr";
+import { useFetch } from "@/app/_hooks/useFetch";
 
 type Props = {
   params: {
     id: string;
   };
 };
-
-// 記事の情報取得
-const postFetcher = async ([url, token]:[string, string]) => {
-  const res = await fetch(url ,{
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: token,
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error("記事データの取得に失敗しました");
-  }
-
-  const data: PostShowResponse = await res.json();
-  return data.post;
-};
-
-// カテゴリーの取得
-const categoriesFetcher = async ([url, token]:[string, string]) => {
-  const res = await fetch(url ,{
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: token,
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error("カテゴリーの取得に失敗しました");
-  }
-
-  const data: CategoriesIndexResponse = await res.json();
-  return data.categories;
-}  
 
 export default function AdminPostsEditPage({params}: Props) {
   const router = useRouter();
@@ -60,21 +26,21 @@ export default function AdminPostsEditPage({params}: Props) {
   const [errorMessage, setErrorMessage] = useState("");
   const { token } = useSupabaseSession();
   const {
-    data: post,
+    data: postData,
     error: postError,
     isLoading: isPostLoading,
-  } = useSWR(
-    token ? [`/api/admin/posts/${params.id}`, token] : null,
-    postFetcher
+  } = useFetch<PostShowResponse>(
+    `/api/admin/posts/${params.id}`
   );
+  const post = postData?.post;
   const {
-    data: categories,
+    data: categoriesData,
     error: categoriesError,
     isLoading: isCategoriesLoading,
-  } = useSWR(
-    token ? ["/api/admin/categories", token] : null,
-    categoriesFetcher
+  } = useFetch<CategoriesIndexResponse>(
+    "/api/admin/categories"
   )
+  const categories = categoriesData?.categories;  
 
   useEffect(() => {
     if (!post) return;

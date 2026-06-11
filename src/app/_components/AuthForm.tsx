@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "./Button";
 import { useForm } from "react-hook-form";
 
@@ -23,24 +23,20 @@ export default function AuthForm({
   topTitle,
   bottomLink,
 }: AuthFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<AuthFormValues>();
   
   const handleAuthSubmit = async (values: AuthFormValues) => {
     try {
-      setIsSubmitting(true);
       await onSubmit(values);
       reset();
     } catch (error) {
       console.error(error)
       alert("処理に失敗しました")
-    } finally {
-      setIsSubmitting(false);
     }
   }
 

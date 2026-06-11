@@ -6,8 +6,8 @@ import { UpdateButton, DeleteButton, BackButton } from "@/app/admin/_components/
 import CategoryForm from "@/app/admin/_components/CategoryForm";
 import type { CategoryShowResponse } from "@/app/api/admin/categories/[id]/route";
 import type { CategoryFormValues } from "@/app/admin/_components/CategoryForm";
+import { useFetch } from "@/app/_hooks/useFetch";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
-import useSWR from "swr";
 
 type Props = {
   params: {
@@ -15,35 +15,20 @@ type Props = {
   };
 };
 
-const fetcher = async ([url, token]: [string, string]) => {
-  const res = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: token,
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error("カテゴリーの情報の取得に失敗しました");
-  }
-  
-  const data: CategoryShowResponse = await res.json();
-  return data.category
-}
-
 export default function AdminCategoryEditPage({ params }: Props) {
+  const { token }  = useSupabaseSession();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const { token } = useSupabaseSession();
   const {
-    data: category,
+    data,
     error,
     isLoading,
-  } = useSWR<CategoryShowResponse["category"]>(
-    token ? [`/api/admin/categories/${params.id}`, token] : null,
-    fetcher
+  } = useFetch<CategoryShowResponse>(
+    `/api/admin/categories/${params.id}`
   );
+
+const category = data?.category;
 
   const handleSubmit = async (values: CategoryFormValues) => {
     if (!values.name.trim()) {
