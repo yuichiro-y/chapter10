@@ -1,46 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatDate } from "@/app/_utils/date";
-
-type Post = {
-  id: number;
-  title: string;
-  createdAt: string;
-};
-
-type PostsIndexResponse = {
-  posts: Post[];
-};
+import type { PostsIndexResponse } from "@/app/api/admin/posts/route";
+import { useFetch } from "@/app/_hooks/useFetch";
 
 export default function AdminPostsPage() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    data: postsData,
+    error,
+    isLoading,
+  } = useFetch<PostsIndexResponse>(
+    "/api/admin/posts"
+  )
+  const posts = postsData?.posts;
 
-  useEffect(() => {
-    const fetcher = async () => {
-      try {
-        const res = await fetch("/api/admin/posts");
-
-        if (!res.ok) {
-          throw new Error("記事一覧の取得に失敗しました");
-        }
-
-        const data: PostsIndexResponse = await res.json();
-        
-        setPosts(data.posts);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetcher();
-  }, []);
-
-  if (loading) return <p>読み込み中...</p>;
+  if (isLoading) return <p>読み込み中...</p>;
+  if (error) return <p>記事一覧の取得に失敗しました</p>;
 
   return (
     <div>
@@ -54,8 +30,12 @@ export default function AdminPostsPage() {
         </Link>
       </div>
 
+      {error && (
+        <p className="text-sm text-red-500">{error.message}</p>
+      )}      
+
       <ul className="divide-y rounded border">
-        {posts.map((post) => (
+        {posts?.map((post) => (
           <li key={post.id}>
             <Link
               href={`/admin/posts/${post.id}`}

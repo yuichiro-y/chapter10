@@ -1,11 +1,13 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CreateButton, DeleteButton, BackButton } from "@/app/admin/_components/Button";
+import { UpdateButton, DeleteButton, BackButton } from "@/app/admin/_components/Button";
 import CategoryForm from "@/app/admin/_components/CategoryForm";
-import { CategoryShowResponse } from "@/app/api/admin/categories/[id]/route";
+import type { CategoryShowResponse } from "@/app/api/admin/categories/[id]/route";
 import type { CategoryFormValues } from "@/app/admin/_components/CategoryForm";
+import { useFetch } from "@/app/_hooks/useFetch";
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 
 type Props = {
   params: {
@@ -14,32 +16,19 @@ type Props = {
 };
 
 export default function AdminCategoryEditPage({ params }: Props) {
+  const { token }  = useSupabaseSession();
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const {
+    data,
+    error,
+    isLoading,
+  } = useFetch<CategoryShowResponse>(
+    `/api/admin/categories/${params.id}`
+  );
 
-  useEffect(() => {
-    const fetcher = async () => {
-      try {
-        const res = await fetch(`/api/admin/categories/${params.id}`);
-
-        if (!res.ok) {
-          throw new Error("カテゴリーの情報の取得に失敗しました");
-        }
-        
-        const data: CategoryShowResponse = await res.json();
-        setName(data.category.name);
-      } catch (error) {
-        console.error(error);
-        setErrorMessage("カテゴリーの情報の取得に失敗しました");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetcher();
-  }, [params.id]);
+const category = data?.category;
 
   const handleSubmit = async (values: CategoryFormValues) => {
     if (!values.name.trim()) {
@@ -47,14 +36,20 @@ export default function AdminCategoryEditPage({ params }: Props) {
       return;
     }
 
-    try {
-      setIsSubmitting(true);
-      setErrorMessage("");
+    if (!token) {
+      setErrorMessage("ログイン情報が取得できません");
+      return;
+    }
 
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    try {
       const res = await fetch(`/api/admin/categories/${params.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: token,          
         },
         body: JSON.stringify(values),
       });
@@ -75,6 +70,11 @@ export default function AdminCategoryEditPage({ params }: Props) {
   const handleDelete = async () => {
     const ok =  window.confirm("本当にこのカテゴリーを削除しますか？");
     if (!ok) return;
+    
+    if (!token) {
+      setErrorMessage("ログイン情報が取得できません");
+      return;
+    }    
 
     try {
       setIsSubmitting(true);
@@ -83,7 +83,7 @@ export default function AdminCategoryEditPage({ params }: Props) {
       const res = await fetch(`/api/admin/categories/${params.id}`, {
         method: "DELETE",
         headers: {
-          "x-admin-token": process.env.NEXT_PUBLIC_ADMIN_TOKEN ?? "",
+          Authorization: token,
         },
       });
 
@@ -101,17 +101,19 @@ export default function AdminCategoryEditPage({ params }: Props) {
     }
   };
 
-  if (loading) return <p>読み込み中...</p>;
+  if (isLoading) return <p>読み込み中...</p>;  
+  if (error) return <p>カテゴリーの取得に失敗しました</p>;
+  if (!category) return <p>カテゴリーが見つかりません</p>;  
 
   return (
     <div>
-      <div className="mb=6">
-        <h1 className="text-2xl font-bold mb-3">カテゴリー編集</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold py-[4px]">カテゴリー編集</h1>
       </div>
 
-      <CategoryForm formId="category-create-form"
+      <CategoryForm formId="category-edit-form"
         initialValues={{
-          name,
+          name: category.name,
         }}
         onSubmit={handleSubmit}
       />
@@ -121,8 +123,8 @@ export default function AdminCategoryEditPage({ params }: Props) {
       )}
 
       <div className="flex gap-3">
-        <CreateButton form="category-create-form" />
-        <DeleteButton onClick={handleDelete} />
+        <UpdateButton form="category-edit-form" disabled={isSubmitting}/>
+        <DeleteButton onClick={handleDelete} disabled={isSubmitting}/>
         <BackButton href="/admin/categories"/>
       </div>
     </div>

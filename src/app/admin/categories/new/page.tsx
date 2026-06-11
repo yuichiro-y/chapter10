@@ -5,13 +5,19 @@ import { useRouter } from "next/navigation";
 import CategoryForm from "@/app/admin/_components/CategoryForm";
 import type { CategoryFormValues } from "@/app/admin/_components/CategoryForm";
 import { CreateButton, BackButton } from "@/app/admin/_components/Button";
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 
 export default function AdminCategoriesPage() {
   const router = useRouter();
-  const [, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const { token } = useSupabaseSession();
 
   const handleSubmit = async (values: CategoryFormValues) => {
+    if (!token) {
+      throw new Error('ログイン情報が取得できません');
+    }
+
     if (!values.name.trim()) {
       setErrorMessage("カテゴリー名を入力してください");
       return;
@@ -25,6 +31,7 @@ export default function AdminCategoriesPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: token,
         },
         body: JSON.stringify(values),
       });
@@ -36,7 +43,7 @@ export default function AdminCategoriesPage() {
       router.push("/admin/categories");
     } catch (error) {
       console.error(error);
-      setErrorMessage("カテゴリーの作成に失敗しましたa");
+      setErrorMessage("カテゴリーの作成に失敗しました");
     } finally {
       setIsSubmitting(false);
     }
@@ -44,8 +51,8 @@ export default function AdminCategoriesPage() {
 
   return (
     <div>
-      <div className="mb-6 items-center">
-        <h1 className="text-2xl font-bold mb-3">カテゴリー作成</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold py-[4px]">カテゴリー作成</h1>
       </div>
   
       <CategoryForm formId="category-create-form"
@@ -60,7 +67,7 @@ export default function AdminCategoriesPage() {
       )}
 
       <div className="flex gap-3">
-        <CreateButton form="category-create-form" />
+        <CreateButton form="category-create-form" disabled={isSubmitting}/>
         <BackButton href="/admin/categories" />
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/app/_libs/prisma"
+import { supabase } from "@/app/_libs/supabase"
 
 type Params = { params: { id: string }}
 
@@ -12,7 +13,14 @@ export type CategoryShowResponse = {
   }
 }
 
-export const GET = async ( _req: Request, { params }: Params ) => {
+export const GET = async ( req: Request, { params }: Params ) => {
+  const token = req.headers.get('Authorization') ?? ''
+  const { error } = await supabase.auth.getUser(token)
+
+  if (error) {
+    return NextResponse.json({ message: error.message }, { status: 401 })
+  }
+
   try {
     const id = Number(params.id)
     
@@ -53,6 +61,13 @@ export type PutCategoryResponse = {
 }
 
 export const PUT = async (req: Request, { params }: Params) => {
+  const token = req.headers.get('Authorization') ?? ''
+  const { error } = await supabase.auth.getUser(token)
+
+  if (error) {
+    return NextResponse.json({ message: error.message }, { status: 401 })
+  }
+
   try {
     const id = Number(params.id)
     
@@ -82,6 +97,13 @@ export const PUT = async (req: Request, { params }: Params) => {
 }
 
 export const DELETE = async ( req: Request, { params }: Params ) => {
+  const token = req.headers.get('Authorization') ?? ''
+  const { error } = await supabase.auth.getUser(token)
+
+  if (error) {
+    return NextResponse.json({ message: error.message }, { status: 401 })
+  }
+
   try {
     const id = Number(params.id)
 

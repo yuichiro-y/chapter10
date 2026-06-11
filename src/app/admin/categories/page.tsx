@@ -1,36 +1,22 @@
 "use client"
 
-import { useEffect, useState } from "react";
-import { CategoriesIndexResponse } from "@/app/api/admin/categories/route";
+import type { CategoriesIndexResponse } from "@/app/api/admin/categories/route";
 import Link from "next/link"
-
-type Category = CategoriesIndexResponse["categories"][number];
+import { useFetch } from "@/app/_hooks/useFetch";
 
 export default function AdminCategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    data,
+    error,
+    isLoading,
+  } = useFetch<CategoriesIndexResponse>(
+    "/api/admin/categories"
+  );
 
-  useEffect(()=> {
-    const fetcher = async () => {
-      try {
-        const res = await fetch("/api/admin/categories", {
-          headers: {
-            "x-admin-token": process.env.NEXT_PUBLIC_ADMIN_TOKEN ?? "",
-          },
-        });
-        const data: CategoriesIndexResponse = await res.json();
-        setCategories(data.categories);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
+const categories = data?.categories ?? []
 
-    fetcher();
-  }, []);
-
-  if (loading) return <p>読み込み中...</p>;
+  if (isLoading) return <p>読み込み中...</p>;
+  if (error) return <p>カテゴリー一覧の取得に失敗しました</p>;
 
   return (
     <div>
@@ -41,11 +27,15 @@ export default function AdminCategoriesPage() {
         </Link>
       </div>
 
+      {error && (
+        <p className="text-sm text-red-500">{error.message}</p>
+      )}
+
       <ul className="divide-y border rounded">
-        {categories.map((Category)=> (
-          <li key={Category.id}>
-            <Link href={`/admin/categories/${Category.id}`} className="block p-4 hover:bg-slate-50">
-              {Category.name}
+        {categories?.map((category)=> (
+          <li key={category.id}>
+            <Link href={`/admin/categories/${category.id}`} className="block p-4 hover:bg-slate-50">
+              {category.name}
             </Link>
           </li>
         ))}

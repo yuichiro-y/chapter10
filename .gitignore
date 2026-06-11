@@ -2,8 +2,9 @@ node_modules/
 .next
 out/
 .env
+_.env
 .env.local
 .DS_Store
 
-/src/generated/prisma
+/src/generated/
 dev.db
