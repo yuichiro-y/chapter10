@@ -3,9 +3,9 @@
 import { useState, FormEvent, ChangeEvent, } from "react";
 
 type FormValues = {
- name: string;
- email: string;
- body: string;
+  name: string;
+  email: string;
+  body: string;
 }
 
 type FormErrors = {
@@ -20,14 +20,14 @@ export default function Contact() {
   const [values ,setValues] = useState<FormValues>({
     name: "",
     email: "",
-    body: ""
+    body: "",
   });
 
   // 入力欄のエラーメッセージを保持
   const [errors, setErrors] = useState<FormErrors>({
     name: "",
     email: "",
-    body: ""
+    body: "",
   });
 
   // 送信中フラグ

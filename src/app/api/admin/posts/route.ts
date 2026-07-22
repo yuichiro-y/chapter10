@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { prisma } from "@/app/_libs/prisma"
 import { supabase } from "@/app/_libs/supabase"
-
 
 export type PostsIndexResponse = {
   posts:{
@@ -48,7 +47,6 @@ export const GET = async (req: Request) => {
       return NextResponse.json({ message: "Unknown error" }, { status: 500 })
   }
 } 
-
 
 export type CreatePostBody = {
   title: string

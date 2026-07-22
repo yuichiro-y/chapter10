@@ -8,8 +8,8 @@ export type PostShowResponse = {
     title: string
     content: string
     thumbnailImageKey: string
-    createdAt: Date
-    updatedAt: Date
+    createdAt: string
+    updatedAt: string
     postCategories:{
       category: {
         id: number
@@ -56,7 +56,13 @@ export const GET = async ( req: Request, { params }: Params ) => {
       return NextResponse.json({ message: "Not Found" }, { status: 404 })
     }
 
-    return NextResponse.json<PostShowResponse>({ post }, { status:200 })
+    const responsePost = {
+      ...post,
+      createdAt: post.createdAt.toISOString(),
+      updatedAt: post.updatedAt.toISOString(),      
+    }   
+
+    return NextResponse.json<PostShowResponse>({ post: responsePost }, { status:200 })
 
   } catch (error) {
     if (error instanceof Error) {

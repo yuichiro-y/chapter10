@@ -7,8 +7,7 @@ export type PostsIndexResponse = {
     title: string
     content: string
     thumbnailImageKey: string
-    createdAt: Date
-    updatedAt: Date
+    createdAt: string
     postCategories:{
       category: {
         id: number
@@ -38,7 +37,16 @@ export const GET = async () => {
       },
     })
 
-    return NextResponse.json<PostsIndexResponse>({ posts }, { status:200 })
+    if (!posts) {
+      return NextResponse.json({ message: "Not Found" }, { status: 404 })
+    }  
+
+    const responsePosts = posts.map((post) => ({
+      ...post,
+      createdAt: post.createdAt.toISOString(),
+    }))
+
+    return NextResponse.json<PostsIndexResponse>({ posts:responsePosts }, { status:200 })
 
   } catch (error) {
     if (error instanceof Error) {
