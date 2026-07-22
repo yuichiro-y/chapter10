@@ -18,7 +18,7 @@ export default function Page() {
       throw new Error(error.message)
     }
 
-    router.replace('/admin')
+    router.replace('/admin/posts')
   }
 
   return (

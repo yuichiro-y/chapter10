@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/app/_libs/prisma"
 
+type Params = { params: { id: string }}
 export type PostShowResponse = {
   post:{
     id: number
     title: string
     content: string
     thumbnailImageKey: string
-    createdAt: Date
-    updatedAt: Date
+    createdAt: string
     postCategories:{
       category: {
         id: number
@@ -17,8 +17,6 @@ export type PostShowResponse = {
     }[]
   }
 }
-
-type Params = { params: { id: string }}
 
 export const GET = async ( _req: Request, { params }:Params ) => {
   try {
@@ -48,7 +46,12 @@ export const GET = async ( _req: Request, { params }:Params ) => {
       return NextResponse.json({ message: "Not Found" }, { status: 404 })
     }
 
-    return NextResponse.json<PostShowResponse>({ post }, { status:200 })
+    const responsePost = {
+      ...post,
+      createdAt: post.createdAt.toISOString()
+    }
+
+    return NextResponse.json<PostShowResponse>({ post: responsePost }, { status:200 })
 
   } catch (error) {
     if (error instanceof Error) {

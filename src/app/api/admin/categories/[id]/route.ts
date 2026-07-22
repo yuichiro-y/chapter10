@@ -8,8 +8,8 @@ export type CategoryShowResponse = {
   category:{
     id: number
     name: string
-    createdAt: Date
-    updatedAt: Date
+    createdAt: string
+    updatedAt: string
   }
 }
 
@@ -42,7 +42,13 @@ export const GET = async ( req: Request, { params }: Params ) => {
       return NextResponse.json({ message: "カテゴリーが見つかりません" }, { status: 404 })
     }
 
-    return NextResponse.json<CategoryShowResponse>({ category }, { status:200 })
+    const responseCategory = {
+      ...category,
+      createdAt: category.createdAt.toISOString(),
+      updatedAt: category.updatedAt.toISOString(),
+    }   
+
+    return NextResponse.json<CategoryShowResponse>({ category: responseCategory }, { status:200 })
 
   } catch (error) {
     if (error instanceof Error) {
@@ -50,7 +56,7 @@ export const GET = async ( req: Request, { params }: Params ) => {
     }
       return NextResponse.json({ message: "Unknown error" }, { status: 500 })
   }
-} 
+}
 
 export type PutCategoryBody = {
   name: string

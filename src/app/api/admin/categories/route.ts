@@ -10,6 +10,14 @@ export type CategoriesIndexResponse = {
   }[]
 }
 
+export type CreateCategoryBody = {
+  name: string
+}
+
+type CreateCategoryResponse = {
+  id: number
+}
+
 export const GET = async (req: Request) => {
   const token = req.headers.get('Authorization') ?? ''
   const { error } = await supabase.auth.getUser(token)
@@ -18,7 +26,7 @@ export const GET = async (req: Request) => {
     return NextResponse.json({ message: error.message }, { status: 401 })
   }
   
-  try { 
+  try {
     const categories = await prisma.category.findMany({
       select: {
         id: true,
@@ -35,7 +43,7 @@ export const GET = async (req: Request) => {
       createdAt: category.createdAt.toISOString(),
     }))
 
-    return NextResponse.json<CategoriesIndexResponse>({ categories:responseCategories }, { status:200 })
+    return NextResponse.json<CategoriesIndexResponse>({ categories: responseCategories }, { status:200 })
 
   } catch (error) {
     if (error instanceof Error) {
@@ -44,14 +52,6 @@ export const GET = async (req: Request) => {
       return NextResponse.json({ message: "Unknown error" }, { status: 500 })
   }
 } 
-
-export type CreateCategoryBody = {
-  name: string
-}
-
-type CreateCategoryResponse = {
-  id: number
-}
 
 export const POST = async ( req: Request ) => {
   const token = req.headers.get('Authorization') ?? ''
